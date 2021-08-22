@@ -176,7 +176,7 @@ RETURN
 
 Update:
 
-  if (H >= 5 and M >= 30) {
+  if (H >= 5 and M >= 40) {
     MsgBox, Get some rest. you are dying...
     IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
     ExitApp
@@ -190,7 +190,7 @@ Update:
     ProgramActive = 0
   }
 
-  if (TimerActive=0) and ( (A_TimeIdle > IdleTime*1000) or (ProgramActive = 0) ) {
+  if (TimerActive = 0) and ( (A_TimeIdle > IdleTime*1000) or (ProgramActive = 0) ) {
     RETURN
   } else {
     if ( (A_TimeIdle > IdleTime*1000) or (ProgramActive = 0) ) {
@@ -202,10 +202,9 @@ Update:
     }
     TimerActive = 1
     if (ColorAlert = "true") {
-      if (H >= 4 and M > 30) {
+      if (H * 60 + M > 280) {
         Gui, Color, %OverColor%
-      }
-      else{
+      } else {
         Gui, Color, %OnColor%
       }
     }
