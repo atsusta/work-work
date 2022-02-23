@@ -7,7 +7,7 @@ IniRead, LastTime, timer.ini, section, LastTime, 00:00:00
 IniRead, ColorAlert, timer.ini, section, ColorAlert, true
 IniRead, OnColor, timer.ini, section, OnColor, B0FFFF
 IniRead, OffColor, timer.ini, section, OffColor, F07070
-IniRead, OverColor, timer.ini, section, OverColor, c73f38
+IniRead, OverColor, timer.ini, section, OverColor, c9364c
 IniWrite, %ColorAlert%, timer.ini, section, ColorAlert
 IniWrite, %OnColor%, timer.ini, section, OnColor
 IniWrite, %OffColor%, timer.ini, section, OffColor
@@ -17,6 +17,7 @@ menuY := 8
 menuHeight := 24
 windowWidth := 210
 windowHeight := 40
+overWorked := 0
 GOTO START
 
 START:
@@ -176,16 +177,25 @@ RETURN
 
 Update:
 
-  if (H >= 5 and M >= 40) {
-    MsgBox, Get some rest. you are dying...
+  if ((H * 60 + M >= 480) and (overWorked = 0)) {
+    MsgBox, You are overworking. Get some rest...
     IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
-    ExitApp
+    overWorked := 1
+    ; ExitApp
   }
 
   ID := DllCall("GetParent", UInt,WinExist("A")), ID := !ID ? WinExist("A") : ID
   WinGetClass, class, ahk_id %ID%
   if ((class = Program1) or (class = Program2) or (class = Program3)) {
+    ; Mouse buttons down and movement
     ProgramActive = 1
+    ; LButton down only (very strict)
+    ; GetKeyState, state, LButton
+    ; if (state = "D") {
+    ;   ProgramActive = 1
+    ; } else {
+    ;   ProgramActive = 0
+    ; }
   } else {
     ProgramActive = 0
   }
@@ -202,7 +212,7 @@ Update:
     }
     TimerActive = 1
     if (ColorAlert = "true") {
-      if (H * 60 + M > 280) {
+      if (H * 60 + M > 420) {
         Gui, Color, %OverColor%
       } else {
         Gui, Color, %OnColor%
