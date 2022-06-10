@@ -26,8 +26,8 @@ START:
   Gui, Color, %OnColor%
   ; Gui, Font, S20 CDefault, Segoe UI Bold Italic
   ; Gui, Add, Text, x8 y0 vMyText, 00:00:00
-  ; Gui, Font, S18 CDefault, Inter V Black Italic
-  ; Gui, Add, Text, x8 y5 vMyText, 00:00:00
+  Gui, Font, S18 CDefault, Inter V Black Italic
+  Gui, Add, Text, x8 y5 vMyText, 00:00:00
   ; Gui, Font, S24 CDefault, DS-Digital Bold Italic
   ; Gui, Add, Text, x4 y4 vMyText, 00:00:00
   ; Gui, Font, S14 CDefault, Arcade Normal
@@ -36,8 +36,8 @@ START:
   ; Gui, Add, Text, x8 y6 vMyText, 00:00:00
   ; Gui, Font, S24 CDefault, NeoDunggeunmo
   ; Gui, Add, Text, x8 y6 vMyText, 00:00:00
-  Gui, Font, S14 CDefault, Amiga Forever Pro2
-  Gui, Add, Text, x8 y7 vMyText, --------
+  ; Gui, Font, S14 CDefault, Amiga Forever Pro2
+  ; Gui, Add, Text, x8 y7 vMyText, --------
   Gui, Font, S16 CDefault, Consolas
   menuIcon := Chr(0x2630)
   Gui, Add, Button, x%menuX% y%menuY% h%menuHeight% gPopMenu, %menuIcon%
