@@ -33,7 +33,7 @@ SendSuppressedKeyUp(key) {
 
 ; Test hotkey:
 ;!CapsLock::MsgBox % A_ThisHotkey
-#CapsLock::CapsLock
+!#CapsLock::CapsLock
 
 ; Remap CapsLock to LCtrl in a way compatible with IME.
 *CapsLock::
@@ -58,7 +58,7 @@ Return
 
 ; Disable Microsoft Text Input Application
 #h::
-MsgBox Kill Microsoft Text Input Application.
+MsgBox Blocked Microsoft Text Input Application.
 return
 
 ; Macros
