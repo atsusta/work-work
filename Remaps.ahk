@@ -33,7 +33,7 @@ SendSuppressedKeyUp(key) {
 
 ; Test hotkey:
 ;!CapsLock::MsgBox % A_ThisHotkey
-#CapsLock::CapsLock
+!#CapsLock::CapsLock
 
 ; Remap CapsLock to LCtrl in a way compatible with IME.
 *CapsLock::

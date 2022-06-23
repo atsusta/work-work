@@ -179,7 +179,6 @@ Update:
 
   if ((H * 60 + M >= 480) and (overWorked = 0)) {
     MsgBox, You are overworking. Get some rest...
-    IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
     overWorked := 1
     ; ExitApp
   }
@@ -219,6 +218,11 @@ Update:
       }
     }
     Gui, Show, w%windowWidth% h%windowHeight% NA, RUNNING
+
+    if (Mod(M, 5) = 0) {
+      ; Save time information every 5 minutes
+      IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
+    }
 
     if (S >= 59) {
       if (M >= 59) {
