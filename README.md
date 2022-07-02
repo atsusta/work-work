@@ -5,12 +5,12 @@ Working time counter based on [original script](https://neilblr.com/post/5875734
 
 ### New Features
 
-#### 📝 Added Saving time information 
+#### 📝 Saving time information 
 For unwanted situations like system crash, restart, or something else
 * Saves `LastTime` in INI file
 * _Default: 5 minutes_
 
-#### 🅰️ Changed font
+#### 🅰️ Fonts
 For better readability
 * **Inter V Black Italic (Default)**
 * Segoe UI Bold Italic
@@ -33,12 +33,12 @@ Gui, Add, ...
 ; Gui, Add, ...
 ```
 
-#### 🍔 Changed menu icon to hamburger
+#### 🍔 New menu icon
 Unicode character 'TIGRAM FOR HEAVEN' (	☰)
 * Position: 0x2630
 * Decimal: 9776
 
-#### ⏰ Added new color alert
+#### ⏰ Additional color alert
 For Work & Life balance
 * Window color changes after target time
 * _Default: 7 hours_
@@ -57,13 +57,13 @@ LastTime=02:05:59
 Timeout=2
 ```
 
-#### 💬 Added alert message for overworking
+#### 💬 Alert message for overworking
 For Work & Life balance
 * Alerts you after target time
 * _Default: 8 hours_
 
 ## Remaps.ahk
 Some useful keyboard remaps
-* Shift + space for changing language
+* Shift + Space for changing language (Hangeul/English)
 * Replace Capslock for Ctrl
 * And others...
