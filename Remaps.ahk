@@ -33,7 +33,6 @@ SendSuppressedKeyUp(key) {
 
 ; Test hotkey:
 ;!CapsLock::MsgBox % A_ThisHotkey
-!#CapsLock::CapsLock
 
 ; Remap CapsLock to LCtrl in a way compatible with IME.
 *CapsLock::
@@ -43,6 +42,7 @@ SendSuppressedKeyUp(key) {
 *CapsLock up::
     Send {Blind}{LCtrl Up}
     return
+!#CapsLock::CapsLock
 
 ; Disable extra mouse buttons
 XButton1::Return
@@ -109,19 +109,22 @@ ToggleTerminal()
 }
 
 ; Macros
-ScrollLock & t::
+AppsKey & Esc up::
+  Send, {F12}
+  Return
+F12 & t Up::
   ; 수고하셨습니다
   Send, {Raw}tnrhgktuTtmqslek
   Return
-ScrollLock & r::
+F12 & r Up::
   ; 감사합니다
   Send, {Raw}rkatkgkqslek
   Return
-ScrollLock & d::
+F12 & d Up::
   ; 안녕하세요
   Send, {Raw}dkssudgktpdy
   Return
-ScrollLock & z::
+F12 & z Up::
   ; ㅋㅋㅋㅋㅋㅋㅋㅋㅋ 
   Send, {Raw}zzzzzzzzz
   Return
