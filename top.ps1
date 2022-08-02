@@ -15,7 +15,7 @@ function Get-MetricBar {
     Process {
         $BufferSizeWidth = $host.UI.RawUI.BufferSize.Width
         $ColumnSize = 18
-        $PadSize = ($ColumnSize - $Metric.Length)
+        $PadSize = ($ColumnSize - $Metric.Length - ([Math]::Floor($MetricValue)).ToString().Length - 2)
         if ($BufferSizeWidth -lt 100) {
             $InUseSize = ($MetricValue * ($BufferSizeWidth - $ColumnSize) / 100)
             $IdleSize = (($BufferSizeWidth - $ColumnSize) - $InUseSize)
@@ -26,8 +26,10 @@ function Get-MetricBar {
         # Generate string respresenting metric bar for the metric in the pipeline.
         -join @(
             $Metric.toUpper()
-            #':'
             ' ' * $PadSize
+            [Math]::Floor($MetricValue)
+            '%'
+            ' '
             '▓' * $InUseSize
             '░' * $IdleSize
         )
@@ -90,7 +92,7 @@ function Show-PerformanceMetrics {
         $CurrentLoad = [ordered]@{
             "CPU Load" = (Get-CimInstance win32_processor).LoadPercentage
             "RAM Usage" = (100 - ($OS.FreePhysicalMemory/$OS.TotalVisibleMemorySize)*100)
-            "Pagefile Usage" = (100 - ($OS.FreeVirtualMemory/$OS.TotalVirtualMemorySize)*100)
+            "SWAP Usage" = (100 - ($OS.FreeVirtualMemory/$OS.TotalVirtualMemorySize)*100)
             "GPU Load" = $GpuUseTotal
         }
 
@@ -111,15 +113,22 @@ function Show-PerformanceMetrics {
 
         Get-Graph -Datapoints ($LoadHistory."CPU Load" | Select-Object -Last $BufferSizeWidth)
         
-        Write-host ""
+        -join @(" " * $BufferSizeWidth)
         
         $CurrentLoad.GetEnumerator() | Get-MetricBar -ErrorAction Ignore | Write-Host -ForegroundColor "DarkCyan"
         
-        Write-host ""
+        -join @(" " * $BufferSizeWidth)
         
         $ExtraHeight = $BufferSizeHeight - 22
         if ($ExtraHeight -gt 0) {
-            Get-Process | Sort-Object WS -Descending | Select-Object -First $ExtraHeight | Format-Table -RepeatHeader
+            Get-Process | Sort-Object WS -Descending | Select-Object -First $ExtraHeight | Format-Table `
+                @{Label = "NPM(K)"; Expression = {[int]($_.NPM / 1024)}},
+                @{Label = "PM(M)"; Expression = {[int]($_.PM / 1MB)}},
+                @{Label = "WS(M)"; Expression = {[int]($_.WS / 1MB)}},
+                @{Label = "VM(M)"; Expression = {[int]($_.VM / 1MB)}},
+                @{Label = "CPU(s)"; Expression = {if ($_.CPU) {$_.CPU.ToString("N")}}},
+                @{Label = "Threads"; Expression ={$_.Threads.Count}},
+                Id, ProcessName -RepeatHeader
         }
     }
 }
