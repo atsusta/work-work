@@ -1,4 +1,3 @@
-TimerActive = 1
 IniRead, IdleTime, timer.ini, section, Timeout, 10
 IniRead, Program1, timer.ini, section, Program1
 IniRead, Program2, timer.ini, section, Program2
@@ -8,15 +7,14 @@ IniRead, ColorAlert, timer.ini, section, ColorAlert, true
 IniRead, OnColor, timer.ini, section, OnColor, B0FFFF
 IniRead, OffColor, timer.ini, section, OffColor, F07070
 IniRead, OverColor, timer.ini, section, OverColor, c9364c
-IniWrite, %ColorAlert%, timer.ini, section, ColorAlert
-IniWrite, %OnColor%, timer.ini, section, OnColor
-IniWrite, %OffColor%, timer.ini, section, OffColor
-IniWrite, %OverColor%, timer.ini, section, OverColor
-menuX := 170
-menuY := 8
-menuHeight := 24
-windowWidth := 210
-windowHeight := 40
+IniRead, PositionX, timer.ini, section, positionX, 100
+IniRead, PositionY, timer.ini, section, positionY, 100
+TimerActive = 1
+menuX := 210
+menuY := 11
+menuHeight := 30
+windowWidth := 240
+windowHeight := 50
 overWorked := 0
 GOTO START
 
@@ -26,23 +24,31 @@ START:
   Gui, Color, %OnColor%
 
   ; Select font: Leave 2 code blocks and comment any others
-  ; Gui, Font, S20 CDefault, Segoe UI Bold Italic
-  ; Gui, Add, Text, x8 y0 vMyText, 00:00:00
-  Gui, Font, S18 CDefault, Inter V Black Italic
-  Gui, Add, Text, x8 y5 vMyText, 00:00:00
+  ; Gui, Font, S26 CDefault, Segoe UI Bold
+  ; Gui, Add, Text, x8 y0 vMyText, --------------
+  Gui, Font, S26 CDefault, Inter Display ExtraBold Italic
+  Gui, Add, Text, x5 y5 vMyText, ------------
   ; Gui, Font, S24 CDefault, DS-Digital Bold Italic
-  ; Gui, Add, Text, x4 y4 vMyText, 00:00:00
-  ; Gui, Font, S14 CDefault, Arcade Normal
-  ; Gui, Add, Text, x6 y12 vMyText, 00:00:00
-  ; Gui, Font, S24 CDefault, PxPlus IBM VGA8
-  ; Gui, Add, Text, x8 y6 vMyText, 00:00:00
-  ; Gui, Font, S24 CDefault, NeoDunggeunmo
-  ; Gui, Add, Text, x8 y6 vMyText, 00:00:00
+  ; Gui, Add, Text, x4 y4 vMyText, ------------
+  ; Gui, Font, Bold S14 CDefault, Arcade Normal
+  ; Gui, Add, Text, x5 y12 vMyText, ------------
+  ; Gui, Font, S24 CDefault, MxPlus IBM VGA 8x16
+  ; Gui, Add, Text, x8 y6 vMyText, ------------
+  ; Gui, Font, Bold S28 CDefault, NeoDunggeunmo
+  ; Gui, Add, Text, x12 y9 vMyText, ------------
   ; Gui, Font, S14 CDefault, Amiga Forever Pro2
   ; Gui, Add, Text, x8 y7 vMyText, --------
+  ; Gui, Font, S26 CDefault, Hubot-Sans ExtraBold
+  ; Gui, Add, Text, x8 y6 vMyText, ------------
+  ; Gui, Font, S26 CDefault, Mona-Sans ExtraBold
+  ; Gui, Add, Text, x8 y6 vMyText, --------------
+  ; Gui, Font, S28 CDefault, Impact
+  ; Gui, Add, Text, x8 y4 vMyText, ---------------
+  ; Gui, Font, Bold S24 CDefault, Prime
+  ; Gui, Add, Text, x8 y6 vMyText, --------------
 
   ; Menu icon
-  Gui, Font, S16 CDefault, Consolas
+  Gui, Font, S14 CDefault, Calibri
   menuIcon := Chr(0x2630)
   Gui, Add, Button, x%menuX% y%menuY% h%menuHeight% gPopMenu, %menuIcon%
   SetFormat, Float, 02.0
@@ -50,7 +56,8 @@ START:
   SetTimer, Update, 1000
   Gosub, Update
   Gui, -MinimizeBox -MaximizeBox
-  Gui, Show, w%windowWidth% h%windowHeight%, MEMENTO MORI
+  Gui, +Owner ;+ToolWindow 
+  Gui, Show, x%positionX% y%positionY% w%windowWidth% h%windowHeight%, MEMENTO MORI
 
   Gui, 2: +LastFound +AlwaysOnTop
   Gui, 2: Add, Text, x8 y7 vMyText, Enter idle timeout in seconds:
@@ -77,6 +84,9 @@ START:
 RETURN
 
 GuiClose:
+  WinGetPos, currentPositionX, currentPositionY
+  IniWrite, %currentPositionX%, timer.ini, section, PositionX
+  IniWrite, %currentPositionY%, timer.ini, section, PositionY
   IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
 ExitApp
 
@@ -90,6 +100,9 @@ ChangeColor:
     Menu, MyMenu, Check, Color Alert
     ColorAlert = true
     IniWrite, true, timer.ini, section, ColorAlert
+    IniWrite, %OnColor%, timer.ini, section, OnColor 
+    IniWrite, %OffColor%, timer.ini, section, OffColor
+    IniWrite, %OverColor%, timer.ini, section, OverColor
     Gui, Color, %OffColor%
   }
 RETURN
@@ -135,37 +148,59 @@ StringSplit, LastTimeA, LastTime, `:
   H = %LastTimeA1%
   M = %LastTimeA2%
   S = %LastTimeA3%
-  GuiControl,, MyText, %H%:%M%:%S%
+  GuiControl,, MyText, %H% : %M% : %S%
   SetTimer, Update, 1000
 RETURN
 
-SetProgram:
-  Gui, Font, S10 CDefault, Arial
-  GuiControl, Font, MyText
-  GuiControl,, MyText,Awaiting program...
-  while (class = "AutoHotkeyGUI") {
-  }
-  Gui, Font, S20 CDefault Bold, Courier New
-  GuiControl, Font, MyText
-  GuiControl,, MyText, %H%:%M%:%S%
-RETURN
-
 SetProgram1:
-  Gosub, SetProgram
-  Program1 = %class%
-  IniWrite, %class%, timer.ini, section, Program1
+  WinGetClass, class, A
+  while (class = "AutoHotKeyGUI") {
+    GuiControl,, MyText, Select App
+    Sleep 1000
+    WinGetClass, class, A
+    if (class != "AutoHotKeyGUI" and class != "") {
+      Program1 = %class%
+      IniWrite, %class%, timer.ini, section, Program1
+      WinGetTitle, title, A
+      MsgBox, %title%
+      GuiControl,, MyText, %H% : %M% : %S%
+      Break
+    }
+  }
 RETURN
 
 SetProgram2:
-  Gosub, SetProgram
-  Program2 = %class%
-  IniWrite, %class%, timer.ini, section, Program2
+  WinGetClass, class, A
+  while (class = "AutoHotKeyGUI") {
+    GuiControl,, MyText, Select App
+    Sleep 1000
+    WinGetClass, class, A
+    if (class != "AutoHotKeyGUI" and class != "") {
+      Program2 = %class%
+      IniWrite, %class%, timer.ini, section, Program2
+      WinGetTitle, title, A
+      MsgBox, %title%
+      GuiControl,, MyText, %H% : %M% : %S%
+      Break
+    }
+  }
 RETURN
 
 SetProgram3:
-  Gosub, SetProgram
-  Program3 = %class%
-  IniWrite, %class%, timer.ini, section, Program3
+  WinGetClass, class, A
+  while (class = "AutoHotKeyGUI") {
+    GuiControl,, MyText, Select App
+    Sleep 1000
+    WinGetClass, class, A
+    if (class != "AutoHotKeyGUI" and class != "") {
+      Program3 = %class%
+      IniWrite, %class%, timer.ini, section, Program3
+      WinGetTitle, title, A
+      MsgBox, %title%
+      GuiControl,, MyText, %H% : %M% : %S%
+      Break
+    }
+  }
 RETURN
 
 SetTimeout:
@@ -224,24 +259,30 @@ Update:
     Gui, Show, w%windowWidth% h%windowHeight% NA, RUNNING
 
     if (Mod(M, 5) = 0) {
-      ; Save time information every 5 minutes
+      ; Save informations every 5 minutes
+      WinGetPos, currentPositionX, currentPositionY, , , ahk_class AutoHotkeyGUI
+      IniWrite, %currentPositionX%, timer.ini, section, PositionX
+      IniWrite, %currentPositionY%, timer.ini, section, PositionY
       IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
+      IniWrite, %OnColor%, timer.ini, section, OnColor 
+      IniWrite, %OffColor%, timer.ini, section, OffColor
+      IniWrite, %OverColor%, timer.ini, section, OverColor
     }
 
     if (S >= 59) {
       if (M >= 59) {
         M = 00
         H += 1.0
-        GuiControl,, MyText, %H%:%M%:%S%
+        GuiControl,, MyText, %H% : %M% : %S%
       } else {
         M += 1.0
       }
       S = 00
-      GuiControl,, MyText, %H%:%M%:%S%
+      GuiControl,, MyText, %H% : %M% : %S%
       RETURN
     }
     S += 1.0
-    GuiControl,, MyText, %H%:%M%:%S%
+    GuiControl,, MyText, %H% : %M% : %S%
     RETURN
   }
 RETURN

@@ -10,13 +10,13 @@ For unwanted situations like system crash, restart, or something else
 
 ### 🅰️ Fonts
 For better readability
-* **Inter V Black Italic (Default)**
+* **[Inter V Black Italic (Default)](https://rsms.me/inter/)**
 * Segoe UI Bold Italic
-* DS-Digital Bold Italic
-* Arcade Normal
-* PxPlus IBM VGA8
-* NeoDunggeunmo
-* Amiga Forever Pro2
+* [DS-Digital Bold Italic](https://fontmeme.com/fonts/ds-digital-font/)
+* [Arcade Normal](https://www.urbanfonts.com/fonts/Arcade_Normal.font)
+* [MxPlus IBM VGA 8x16](https://int10h.org/oldschool-pc-fonts/download/)
+* [NeoDunggeunmo](https://neodgm.dalgona.dev)
+* [Amiga Forever Pro2](https://www.ffonts.net/Amiga-Forever-Pro2.font.download)
 
 #### ❓ How to change font
 Leave 2 code blocks and comment any others in `Work.ahk`
@@ -71,3 +71,6 @@ Some useful keyboard remaps
 
 ## top.ps1
 Graphical performance information for PowerShell. Source is [here](https://yvez.be/2019/09/01/lets-create-top-for-powershell/#code).
+
+## Beatcon-to-keyboard.ahk
+Rhythm game controller inputs to keyboard mapping.
