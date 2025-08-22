@@ -1,288 +1,280 @@
-IniRead, IdleTime, timer.ini, section, Timeout, 10
-IniRead, Program1, timer.ini, section, Program1
-IniRead, Program2, timer.ini, section, Program2
-IniRead, Program3, timer.ini, section, Program3
-IniRead, LastTime, timer.ini, section, LastTime, 00:00:00
-IniRead, ColorAlert, timer.ini, section, ColorAlert, true
-IniRead, OnColor, timer.ini, section, OnColor, B0FFFF
-IniRead, OffColor, timer.ini, section, OffColor, F07070
-IniRead, OverColor, timer.ini, section, OverColor, c9364c
-IniRead, PositionX, timer.ini, section, positionX, 100
-IniRead, PositionY, timer.ini, section, positionY, 100
-TimerActive = 1
+; This script is a simple timer that tracks active time based on user-defined programs and idle time.
+; It shows a transparent window with a clock and changes color based on activity and time.
+; It is a complete conversion from AHK v1.0 to v2.0.
+
+; Variable declarations and INI file reads.
+; IniRead() and IniWrite() are functions in v2.0.
+global
+IdleTime := IniRead("timer.ini", "section", "Timeout", 10)
+Program1 := IniRead("timer.ini", "section", "Program1")
+Program2 := IniRead("timer.ini", "section", "Program2")
+Program3 := IniRead("timer.ini", "section", "Program3")
+LastTime := IniRead("timer.ini", "section", "LastTime", "00:00:00")
+ColorAlert := IniRead("timer.ini", "section", "ColorAlert", "true")
+OnColor := IniRead("timer.ini", "section", "OnColor", "B0FFFF")
+OffColor := IniRead("timer.ini", "section", "OffColor", "F07070")
+OverColor := IniRead("timer.ini", "section", "OverColor", "c9364c")
+PositionX := IniRead("timer.ini", "section", "positionX", 100)
+PositionY := IniRead("timer.ini", "section", "positionY", 100)
+
+TimerActive := 1
 menuX := 210
 menuY := 11
 menuHeight := 30
 windowWidth := 240
 windowHeight := 50
 overWorked := 0
-GOTO START
+H := 0, M := 0, S := 0
 
-START:
-  SetBatchLines, -1
-  Gui +LastFound +AlwaysOnTop
-  Gui, Color, %OnColor%
+; Main script logic starts here. No more GOTO.
+; This code runs on startup.
 
-  ; Select font: Leave 2 code blocks and comment any others
-  ; Gui, Font, S26 CDefault, Segoe UI Bold
-  ; Gui, Add, Text, x8 y0 vMyText, --------------
-  Gui, Font, S26 CDefault, Inter Display ExtraBold Italic
-  Gui, Add, Text, x5 y5 vMyText, ------------
-  ; Gui, Font, S24 CDefault, DS-Digital Bold Italic
-  ; Gui, Add, Text, x4 y4 vMyText, ------------
-  ; Gui, Font, Bold S14 CDefault, Arcade Normal
-  ; Gui, Add, Text, x5 y12 vMyText, ------------
-  ; Gui, Font, S24 CDefault, MxPlus IBM VGA 8x16
-  ; Gui, Add, Text, x8 y6 vMyText, ------------
-  ; Gui, Font, Bold S28 CDefault, NeoDunggeunmo
-  ; Gui, Add, Text, x12 y9 vMyText, ------------
-  ; Gui, Font, S14 CDefault, Amiga Forever Pro2
-  ; Gui, Add, Text, x8 y7 vMyText, --------
-  ; Gui, Font, S26 CDefault, Hubot-Sans ExtraBold
-  ; Gui, Add, Text, x8 y6 vMyText, ------------
-  ; Gui, Font, S26 CDefault, Mona-Sans ExtraBold
-  ; Gui, Add, Text, x8 y6 vMyText, --------------
-  ; Gui, Font, S28 CDefault, Impact
-  ; Gui, Add, Text, x8 y4 vMyText, ---------------
-  ; Gui, Font, Bold S24 CDefault, Prime
-  ; Gui, Add, Text, x8 y6 vMyText, --------------
+; GUI 1: The main timer window.
+MyGui := Gui("+AlwaysOnTop", "MEMENTO MORI")
+MyGui.Opt("-MinimizeBox -MaximizeBox")
+MyGui.BackColor := OnColor
 
-  ; Menu icon
-  Gui, Font, S14 CDefault, Calibri
-  menuIcon := Chr(0x2630)
-  Gui, Add, Button, x%menuX% y%menuY% h%menuHeight% gPopMenu, %menuIcon%
-  SetFormat, Float, 02.0
-  h := m := s := "00"
-  SetTimer, Update, 1000
-  Gosub, Update
-  Gui, -MinimizeBox -MaximizeBox
-  Gui, +Owner ;+ToolWindow 
-  Gui, Show, x%positionX% y%positionY% w%windowWidth% h%windowHeight%, MEMENTO MORI
+; Font selection for the timer text.
+; MyGui.Font("S26", "Segoe UI Bold")
+; MyGui.Add("Text", "x8 y0 vMyText", "--------------")
+MyGui.Font("S26", "Inter Display ExtraBold Italic")
+MyGui.Add("Text", "x5 y5 vMyText", "------------")
 
-  Gui, 2: +LastFound +AlwaysOnTop
-  Gui, 2: Add, Text, x8 y7 vMyText, Enter idle timeout in seconds:
-  Gui, 2: Add, Edit, y5 vNewTimeout w25
-  Gui, 2: Add, Button, gSetTimeoutOK Default, Set
-  WinSet, Style, -0x20000 -0x10000
+; Menu button icon.
+MyGui.Font("S14", "Calibri")
+menuIcon := Chr(0x2630)
+MyGui.Add("Button", "x" menuX " y" menuY " h" menuHeight " gPopMenu", menuIcon)
 
-  progmen1 = Program 1: %Program1%
-  progmen2 = Program 2: %Program2%
-  progmen3 = Program 3: %Program3%
-  timemen = Timeout: %IdleTime%
-  Menu, MyMenu, Add, Resume previous time, Prev
-  Menu, MyMenu, Add
-  Menu, MyMenu, Add, %progmen1%, SetProgram1
-  Menu, MyMenu, Add, %progmen2%, SetProgram2
-  Menu, MyMenu, Add, %progmen3%, SetProgram3
-  Menu, MyMenu, Add
-  Menu, MyMenu, Add, %timemen%, SetTimeout
-  Menu, MyMenu, Add
-  Menu, MyMenu, Add, Color Alert, ChangeColor
-  if (ColorAlert = "true") {
-    Menu, MyMenu, Check, Color Alert
-  }
-RETURN
+; Start the timer.
+SetTimer "Update", 1000
+Update()
+MyGui.Show("x" PositionX " y" PositionY " w" windowWidth " h" windowHeight)
 
-GuiClose:
-  WinGetPos, currentPositionX, currentPositionY
-  IniWrite, %currentPositionX%, timer.ini, section, PositionX
-  IniWrite, %currentPositionY%, timer.ini, section, PositionY
-  IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
-ExitApp
+; GUI 2: The timeout configuration window.
+SetTimeoutGui := Gui("+AlwaysOnTop", "Set Idle Timeout")
+SetTimeoutGui.Add("Text", "x8 y7", "Enter idle timeout in seconds:")
+SetTimeoutGui.Add("Edit", "y5 vNewTimeout w25", "")
+SetTimeoutGui.Add("Button", "gSetTimeoutOK Default", "Set")
+SetTimeoutGui.Opt("-Caption -Border -Resize -SysMenu")
 
-ChangeColor:
-  if (ColorAlert = "true") {
-    Menu, MyMenu, UnCheck, Color Alert
-    ColorAlert = false
-    IniWrite, false, timer.ini, section, ColorAlert
-    Gui, Color, %OnColor%
-  } else {
-    Menu, MyMenu, Check, Color Alert
-    ColorAlert = true
-    IniWrite, true, timer.ini, section, ColorAlert
-    IniWrite, %OnColor%, timer.ini, section, OnColor 
-    IniWrite, %OffColor%, timer.ini, section, OffColor
-    IniWrite, %OverColor%, timer.ini, section, OverColor
-    Gui, Color, %OffColor%
-  }
-RETURN
 
-PopMenu:
-  if ((Program1 = "ERROR") or (Program1 = "")) {
-    progmen1b = Program 1: (Not set)
-  } else {
-    progmen1B = Program 1: %Program1%
-  }
-  if ((Program2 = "ERROR") or (Program2 = "")) {
-    progmen2b = Program 2: (Not set)
-  } else {
-    progmen2B = Program 2: %Program2%
-  }
-  if ((Program3 = "ERROR") or (Program3 = "")) {
-    progmen3b = Program 3: (Not set)
-  } else {
-    progmen3B = Program 3: %Program3%
-  }
-  if (progmen1 != progmen1B ) {
-    Menu,MyMenu,Rename,%progmen1%,%progmen1B%
-    progmen1 = %progmen1B%
-  }
-  if (progmen2 != progmen2B ) {
-    Menu,MyMenu,Rename,%progmen2%,%progmen2B%
-    progmen2 = %progmen2B%
-  }
-  if (progmen3 != progmen3B ) {
-    Menu,MyMenu,Rename,%progmen3%,%progmen3B%
-    progmen3 = %progmen3B%
-  }
-  timemenB = Timeout: %IdleTime%
-  if (timemen != timemenB ) {
-    Menu,MyMenu,Rename,%timemen%,%timemenB%
-    timemen = %timemenB%
-  }
-  Menu, MyMenu, Show
-RETURN
+; Menu definition.
+MyMenu := Menu()
+MyMenu.Add("Resume previous time", "Prev")
+MyMenu.Add()
+MyMenu.Add("Program 1: " Program1, "SetProgram1")
+MyMenu.Add("Program 2: " Program2, "SetProgram2")
+MyMenu.Add("Program 3: " Program3, "SetProgram3")
+MyMenu.Add()
+MyMenu.Add("Timeout: " IdleTime, "SetTimeout")
+MyMenu.Add()
+MyMenu.Add("Color Alert", "ChangeColor")
+if (ColorAlert = "true") {
+    MyMenu.Check("Color Alert")
+}
 
-Prev:
-StringSplit, LastTimeA, LastTime, `:
-  H = %LastTimeA1%
-  M = %LastTimeA2%
-  S = %LastTimeA3%
-  GuiControl,, MyText, %H% : %M% : %S%
-  SetTimer, Update, 1000
-RETURN
+; Function to handle the main GUI close event.
+MyGui.OnEvent("Close", GuiClose)
 
-SetProgram1:
-  WinGetClass, class, A
-  while (class = "AutoHotKeyGUI") {
-    GuiControl,, MyText, Select App
-    Sleep 1000
-    WinGetClass, class, A
-    if (class != "AutoHotKeyGUI" and class != "") {
-      Program1 = %class%
-      IniWrite, %class%, timer.ini, section, Program1
-      WinGetTitle, title, A
-      MsgBox, %title%
-      GuiControl,, MyText, %H% : %M% : %S%
-      Break
-    }
-  }
-RETURN
+; --- Functions start here ---
 
-SetProgram2:
-  WinGetClass, class, A
-  while (class = "AutoHotKeyGUI") {
-    GuiControl,, MyText, Select App
-    Sleep 1000
-    WinGetClass, class, A
-    if (class != "AutoHotKeyGUI" and class != "") {
-      Program2 = %class%
-      IniWrite, %class%, timer.ini, section, Program2
-      WinGetTitle, title, A
-      MsgBox, %title%
-      GuiControl,, MyText, %H% : %M% : %S%
-      Break
-    }
-  }
-RETURN
+GuiClose() {
+    global
+    MyGui.GetPos(&currentPositionX, &currentPositionY)
+    IniWrite(currentPositionX, "timer.ini", "section", "PositionX")
+    IniWrite(currentPositionY, "timer.ini", "section", "PositionY")
+    IniWrite(H ":" M ":" S, "timer.ini", "section", "LastTime")
+    ExitApp
+}
 
-SetProgram3:
-  WinGetClass, class, A
-  while (class = "AutoHotKeyGUI") {
-    GuiControl,, MyText, Select App
-    Sleep 1000
-    WinGetClass, class, A
-    if (class != "AutoHotKeyGUI" and class != "") {
-      Program3 = %class%
-      IniWrite, %class%, timer.ini, section, Program3
-      WinGetTitle, title, A
-      MsgBox, %title%
-      GuiControl,, MyText, %H% : %M% : %S%
-      Break
-    }
-  }
-RETURN
-
-SetTimeout:
-  Gui, 2: Show,, Set Idle Timeout
-RETURN
-
-SetTimeoutOK:
-  Gui, 2: Submit
-  if NewTimeout is integer
-    IdleTime = %NewTimeout%
-  IniWrite, %IdleTime%, timer.ini, section, Timeout
-RETURN
-
-Update:
-
-  if ((H * 60 + M >= 480) and (overWorked = 0)) {
-    MsgBox, You are overworking. Get some rest...
-    overWorked := 1
-    ; ExitApp
-  }
-
-  ID := DllCall("GetParent", UInt,WinExist("A")), ID := !ID ? WinExist("A") : ID
-  WinGetClass, class, ahk_id %ID%
-  if ((class = Program1) or (class = Program2) or (class = Program3)) {
-    ; Mouse buttons down and movement
-    ProgramActive = 1
-    ; LButton down only (very strict)
-    ; GetKeyState, state, LButton
-    ; if (state = "D") {
-    ;   ProgramActive = 1
-    ; } else {
-    ;   ProgramActive = 0
-    ; }
-  } else {
-    ProgramActive = 0
-  }
-
-  if (TimerActive = 0) and ( (A_TimeIdle > IdleTime*1000) or (ProgramActive = 0) ) {
-    RETURN
-  } else {
-    if ( (A_TimeIdle > IdleTime*1000) or (ProgramActive = 0) ) {
-      TimerActive = 0
-      if (ColorAlert = "true")
-        Gui, Color, %OffColor%
-      Gui, Show, w%windowWidth% h%windowHeight% NA, WAITING
-      RETURN
-    }
-    TimerActive = 1
+ChangeColor() {
+    global
     if (ColorAlert = "true") {
-      if (H * 60 + M > 420) {
-        Gui, Color, %OverColor%
-      } else {
-        Gui, Color, %OnColor%
-      }
+        MyMenu.Uncheck("Color Alert")
+        ColorAlert := "false"
+        IniWrite("false", "timer.ini", "section", "ColorAlert")
+        MyGui.BackColor := OnColor
+    } else {
+        MyMenu.Check("Color Alert")
+        ColorAlert := "true"
+        IniWrite("true", "timer.ini", "section", "ColorAlert")
+        IniWrite(OnColor, "timer.ini", "section", "OnColor")
+        IniWrite(OffColor, "timer.ini", "section", "OffColor")
+        IniWrite(OverColor, "timer.ini", "section", "OverColor")
+        MyGui.BackColor := OffColor
     }
-    Gui, Show, w%windowWidth% h%windowHeight% NA, RUNNING
+}
 
-    if (Mod(M, 5) = 0) {
-      ; Save informations every 5 minutes
-      WinGetPos, currentPositionX, currentPositionY, , , ahk_class AutoHotkeyGUI
-      IniWrite, %currentPositionX%, timer.ini, section, PositionX
-      IniWrite, %currentPositionY%, timer.ini, section, PositionY
-      IniWrite, %H%:%M%:%S%, timer.ini, section, LastTime
-      IniWrite, %OnColor%, timer.ini, section, OnColor 
-      IniWrite, %OffColor%, timer.ini, section, OffColor
-      IniWrite, %OverColor%, timer.ini, section, OverColor
+PopMenu() {
+    global
+    
+    ; The menu labels are now dynamic and will be updated.
+    progmen1B := (Program1 = "ERROR" or Program1 = "") ? "Program 1: (Not set)" : "Program 1: " Program1
+    progmen2B := (Program2 = "ERROR" or Program2 = "") ? "Program 2: (Not set)" : "Program 2: " Program2
+    progmen3B := (Program3 = "ERROR" or Program3 = "") ? "Program 3: (Not set)" : "Program 3: " Program3
+    timemenB := "Timeout: " IdleTime
+
+    MyMenu.Rename("Program 1: " Program1, progmen1B)
+    MyMenu.Rename("Program 2: " Program2, progmen2B)
+    MyMenu.Rename("Program 3: " Program3, progmen3B)
+    MyMenu.Rename("Timeout: " IdleTime, timemenB)
+    
+    Program1 := progmen1B
+    Program2 := progmen2B
+    Program3 := progmen3B
+    IdleTime := timemenB
+
+    MyMenu.Show()
+}
+
+Prev() {
+    global
+    ; Split the LastTime string into an array.
+    lastTimeParts := StrSplit(LastTime, ":")
+    H := lastTimeParts[1], M := lastTimeParts[2], S := lastTimeParts[3]
+    MyGui["MyText"].Value := Format("{:02} : {:02} : {:02}", H, M, S)
+    SetTimer "Update", 1000
+}
+
+SetProgram1() {
+    global
+    class := WinGetClass("A")
+    while (class = "AutoHotKeyGUI") {
+        MyGui["MyText"].Value := "Select App"
+        Sleep 1000
+        class := WinGetClass("A")
+        if (class != "AutoHotKeyGUI" and class != "") {
+            Program1 := class
+            IniWrite(class, "timer.ini", "section", "Program1")
+            title := WinGetTitle("A")
+            MsgBox(title)
+            MyGui["MyText"].Value := Format("{:02} : {:02} : {:02}", H, M, S)
+            Break
+        }
+    }
+}
+
+SetProgram2() {
+    global
+    class := WinGetClass("A")
+    while (class = "AutoHotKeyGUI") {
+        MyGui["MyText"].Value := "Select App"
+        Sleep 1000
+        class := WinGetClass("A")
+        if (class != "AutoHotKeyGUI" and class != "") {
+            Program2 := class
+            IniWrite(class, "timer.ini", "section", "Program2")
+            title := WinGetTitle("A")
+            MsgBox(title)
+            MyGui["MyText"].Value := Format("{:02} : {:02} : {:02}", H, M, S)
+            Break
+        }
+    }
+}
+
+SetProgram3() {
+    global
+    class := WinGetClass("A")
+    while (class = "AutoHotKeyGUI") {
+        MyGui["MyText"].Value := "Select App"
+        Sleep 1000
+        class := WinGetClass("A")
+        if (class != "AutoHotKeyGUI" and class != "") {
+            Program3 := class
+            IniWrite(class, "timer.ini", "section", "Program3")
+            title := WinGetTitle("A")
+            MsgBox(title)
+            MyGui["MyText"].Value := Format("{:02} : {:02} : {:02}", H, M, S)
+            Break
+        }
+    }
+}
+
+SetTimeout() {
+    global
+    SetTimeoutGui.Show()
+}
+
+SetTimeoutOK() {
+    global
+    ; Get value from the GUI control.
+    timeoutVal := SetTimeoutGui.NewTimeout.Value
+    
+    ; Check if the value is a number.
+    if IsNumber(timeoutVal) {
+        IdleTime := timeoutVal
+    }
+    IniWrite(IdleTime, "timer.ini", "section", "Timeout")
+    SetTimeoutGui.Hide()
+}
+
+Update() {
+    global
+    ; Check if 8 hours (480 minutes) of work time have passed.
+    if ((H * 60 + M >= 480) and (overWorked = 0)) {
+        MsgBox("You are overworking. Get some rest...")
+        overWorked := 1
     }
 
-    if (S >= 59) {
-      if (M >= 59) {
-        M = 00
-        H += 1.0
-        GuiControl,, MyText, %H% : %M% : %S%
-      } else {
-        M += 1.0
-      }
-      S = 00
-      GuiControl,, MyText, %H% : %M% : %S%
-      RETURN
+    ; Get the class of the active window.
+    activeWindowId := WinExist("A")
+    ; Handle parent windows (e.g., child windows like dialog boxes)
+    parentWindowId := DllCall("user32\GetParent", "ptr", activeWindowId, "ptr")
+    idToCheck := (parentWindowId = 0) ? activeWindowId : parentWindowId
+    class := WinGetClass("ahk_id " idToCheck)
+
+    ; Check if the active window is one of the designated programs.
+    ProgramActive := 0
+    if (class = Program1 or class = Program2 or class = Program3) {
+        ProgramActive := 1
     }
-    S += 1.0
-    GuiControl,, MyText, %H% : %M% : %S%
-    RETURN
-  }
-RETURN
+
+    ; If the timer is inactive OR the user is idle/not in a designated program, stop the timer.
+    if (TimerActive = 0 and (A_TimeIdle > IdleTime * 1000 or ProgramActive = 0)) {
+        return
+    } else {
+        if (A_TimeIdle > IdleTime * 1000 or ProgramActive = 0) {
+            TimerActive := 0
+            if (ColorAlert = "true") {
+                MyGui.BackColor := OffColor
+            }
+            MyGui.Title := "WAITING"
+            MyGui.Show("w" windowWidth " h" windowHeight " NA")
+            return
+        }
+        
+        TimerActive := 1
+        if (ColorAlert = "true") {
+            if (H * 60 + M > 420) {
+                MyGui.BackColor := OverColor
+            } else {
+                MyGui.BackColor := OnColor
+            }
+        }
+        MyGui.Title := "RUNNING"
+        MyGui.Show("w" windowWidth " h" windowHeight " NA")
+
+        ; Save status to INI file every 5 minutes.
+        if (Mod(M, 5) = 0) {
+            MyGui.GetPos(&currentPositionX, &currentPositionY)
+            IniWrite(currentPositionX, "timer.ini", "section", "PositionX")
+            IniWrite(currentPositionY, "timer.ini", "section", "PositionY")
+            IniWrite(H ":" M ":" S, "timer.ini", "section", "LastTime")
+            IniWrite(OnColor, "timer.ini", "section", "OnColor")
+            IniWrite(OffColor, "timer.ini", "section", "OffColor")
+            IniWrite(OverColor, "timer.ini", "section", "OverColor")
+        }
+
+        ; Increment the timer.
+        S += 1
+        if (S >= 60) {
+            S := 0
+            M += 1
+            if (M >= 60) {
+                M := 0
+                H += 1
+            }
+        }
+        MyGui["MyText"].Value := Format("{:02} : {:02} : {:02}", H, M, S)
+    }
+}
