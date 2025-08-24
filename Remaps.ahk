@@ -7,7 +7,7 @@
 
 ; CapsLock
 ; https://www.autohotkey.com/docs/misc/Remap.htm
-+CapsLock::CapsLock
+^+CapsLock::CapsLock
 CapsLock::Ctrl
 
 ; Disable extra mouse buttons
@@ -17,10 +17,11 @@ XButton2::Return
 ; Photoshop
 #HotIf WinActive("ahk_exe Photoshop.exe")
 ; Reset brush smoothing (0%)
-`::Send "!0!0"
+!`::Send "!0!0"
 
 ; Ctrl + Right mouse button (Select Layer)
-Insert::Send "{Ctrl down}{RButton}{Ctrl up}"
+Insert::Send "{Ctrl down}{RButton}"
+Insert Up::Send "{Ctrl up}"
 
 Pause::Send "{RButton}"
 #HotIf
